@@ -1,0 +1,302 @@
+1.WebService概述:
+    概念:
+        WebService是一种跨编程语言和跨操作系统平台的远程调用技术。
+    作用:
+        不同系统，不同平台，不同语言之间的通信访问和远程调用。
+        应用程序的集成，不同业务的整合。
+    官方定义:
+        Web服务是一种服务导向架构的技术，通过标准的Web协议提供服务，目的是保证不同平台的应用服务可以互操作。
+        表面上看WebService就是一个应用程序，它向外界暴露出一个能够通过Web进行调用的方法API，能用编程的方法通过Web调用来实现某个功能的应用程序。
+        深层次上看WebService是一种新的Web应用程序分支，它们是自包含、自描述模块化的应用，可以在网络中被描述、发布、查找以及通过Web来调用。
+    两种类型:
+        一种是以SOAP协议风格的WebService
+        一种是Restful风格的WebService
+    核心组件:
+        XML和HTTP
+        SOAP： 简单对象访问协议
+        WSDL： WebService描述语言
+        UDDI：统一描述、发现和集成协议
+2.WebService主流框架简介:
+    AXIS:
+        AXIS（Apache eXtensible Interaction System）阿帕奇可扩展交互系统
+        AXIS是一款开源的WebService运行引擎，本质上就是一个SOAP引擎，提供创建服务器端、客户端和网关SOAP操作的基本框架。
+        AXIS分为1.x系列和2系列，两个系列体系结构和使用上有较大的区别，相对而言，Axis1.x更加稳定，文档也比较齐全。
+    XFire:
+        XFire 是下一代的java SOAP 框架。XFire 提供了非常方便的API，使用这些API 可以
+        开发面向服务(SOA)的程序。它支持各种标准，性能优良（基于低内存的STAX 模型）。
+    CXF:
+        Apache CXF = Celtix + XFire
+        Apache CXF 的前身叫 Apache CeltiXfire，现在已经正式更名为 Apache CXF 了，以下简称为 CXF。
+        CXF 继承了 Celtix 和 XFire 两大开源项目的精华，提供了对 JAX-WS 全面的支持，
+        并且提供了多种 Binding 、DataBinding、Transport 以及各种 Format 的支持，
+        并且可以根据实际项目的需要，采用代码优先（Code First）或者 WSDL 优先（WSDL First）来轻松地实现 Web Services 的发布和使用。
+        Apache CXF已经是一个正式的Apache顶级项目。
+3.WebService项目搭建:
+    步骤:
+        1)发布接口
+        2)实现接口
+        3)发布服务
+        4)客户端调用
+    具体实现:
+        HelloWorld:
+            建工程添Jar包(CXF的jar包,去apache官网下)
+            建HelloWorld服务接口(@WebService注解添加)
+            建HelloWorldImpl服务实现类
+            建MainServer服务启动类(JaxWsServerFactoryBean)
+            测试访问有两方法：
+            	1)通过图形化工具直接测试调用
+            	2)建ClientTest调用对外暴露的服务，编码测试(JaxWsProxyFactoryBean)
+    具体代码:
+        建HelloWorld服务接口(@WebService注解添加)
+            package com.atguigu.cxf.test;
+
+            import javax.jws.WebService;
+
+            @WebService
+            public interface HelloWorld {
+            	public String sayhello(String name,int age);
+            }
+
+        建HelloWorldImpl服务实现类
+            package com.atguigu.cxf.test;
+
+            public class HelloWorldImpl implements HelloWorld {
+
+            @Override
+                public String sayhello(String name,int age) {
+            	return "Hello, "+name+"("+age+" years old)";
+                }
+            }
+
+        建MainServer服务启动类
+            package com.atguigu.cxf.test;
+
+            import org.apache.cxf.endpoint.Server;
+            import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
+            public class MainServer {
+            public static void main(String[] args) {
+                JaxWsServerFactoryBean jaxWsServerFactoryBean=new JaxWsServerFactoryBean();
+                jaxWsServerFactoryBean.setAddress("http://localhost:9999/Cxf_test");
+                jaxWsServerFactoryBean.setServiceClass(HelloWorldImpl.class);
+                Server server = jaxWsServerFactoryBean.create();
+                server.start();
+                }
+            }
+
+        用客户端代码调用服务
+            package com.atguigu.cxf.test;
+
+            import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+            import org.springframework.remoting.jaxws.JaxWsPortProxyFactoryBean;
+
+            public class MainClient {
+               public static void main(String[] args) {
+                 JaxWsProxyFactoryBean jaxWsProxyFactoryBean=new JaxWsProxyFactoryBean();
+                 jaxWsProxyFactoryBean.setAddress("http://localhost:9999/Cxf_test");
+                 jaxWsProxyFactoryBean.setServiceClass(HelloWorld.class);
+                 HelloWorld helloWorld =(HelloWorld) jaxWsProxyFactoryBean.create();
+                 String hello=helloWorld.sayhello("John",19);
+                 System.out.println(hello);
+                }
+            }
+
+3.SOAP协议是什么:
+    简单对象访问协议（Simple Object Access Protocol，SOAP）是一种轻量的、简单的、基于XML的协议，它被设计成在WEB上交换结构化的和固化的信息。
+    OAP 是基于 XML 的简易协议，可使应用程序在 HTTP 之上进行信息交换。
+    包含的元素:
+        Envelope 元素，必有，可把此 XML 文档标识为一条 SOAP 消息
+        Header 元素，可选，包含头部信息
+        Body 元素，必有，包含所有的调用和响应信息
+        Fault 元素，可选，提供有关在处理此消息所发生错误的信息
+
+4.WSDL报文总体概述:
+    <definitions>
+    	<types>
+    	  	定义 web service 使用的数据类型
+    	</types>
+    	<message>
+    		每个消息均由一个或多个部件组成。可以把它当做java中一个函数调用的参数。
+    	</message>
+
+    	<portType>
+    		它类似Java中的一个函数库（或一个模块、或一个类）
+    	</portType>
+
+    	<binding>
+    		为每个端口定义消息格式和协议细节。 	</binding>
+    </definitions>
+
+5.JAX-WS工具:
+    定义:
+        JAX-WS = Java API For XML Web Service
+        JAX-WS规范是一组XML web services的JAVA API，它运行时实现会将这些API的调用转换成为对应的SOAP消息，是Sun公司提出的一套关于WebService的开发标准。
+    作用:
+        进入jar包的bin目录下运行wsdl2java命令，通过wsdl生成java代码
+        wsdl2java wsdl地址
+        注意:可以是网上的地址，也可以是本地的文件
+        生成的文件可以打成jar包。
+6.案例:调用天气服务
+    1)寻找webservice服务获得wsdl:
+        http://www.webxml.com.cn/zh_cn/index.aspx
+    2)根据wsdl生成接口:
+        在apache-cxf-3.1.5\bin目录下运行wsdl2java命令
+        wsdl2java  http://ws.webxml.com.cn/WebServices/WeatherWS.asmx?wsdl
+        注意:
+            官方发布的webservice用的.Net生成wsdl与java稍有不兼容，所以不能直接用wsdl2java生成，
+            必须把原wsdl的源代码复制到本地的一个文本文件里比如e:\weather.wsdl，先编辑一下，去掉2行<s:element ref="s:schema" />
+    3)编写接口程序
+    4)将接口文件打包
+    新增客户端类:
+        WeatherWebServiceSoap weather_soap=
+       	    new WeatherWebService().getWeatherWebServiceSoap();
+
+        List<String>   weather_infos
+       	    =weather_soap.getWeatherbyCityName("北京").getString() ;
+        for (String weather_info : weather_infos) {
+       	    System.out.println(weather_info);
+        }
+6.Spring整合cxf:
+    1)建立web工程
+    2)导入cxf的jar包
+    3)加入接口和实现类
+    4)修改web.xml
+    5)新建applicationContext.xml
+    增加接口：
+        @WebService
+        public interface HelloWorld {
+        @WebMethod
+        @WebResult(name = "sayHelloResult")
+        public String sayHello(@WebParam(name = "userName") String name, 	@WebParam(name = "userAge") int age);
+        }
+    增加实现类：
+        public class HelloWorldImpl implements HelloWorld {
+        @Override
+        @WebMethod
+        @WebResult(name = "sayHelloResult")
+        public String sayHello(@WebParam(name = "userName") String name, @WebParam(name = "userAge") int age) {
+            return "spring say hello to: " + name + "\t" + "age: " + age;
+           }
+        }
+    修改applicationContext.xml
+        <?xml version="1.0" encoding="UTF-8"?>
+        <beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:jaxws="http://cxf.apache.org/jaxws"
+        xsi:schemaLocation="http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+
+        <import resource="classpath:META-INF/cxf/cxf.xml"/>
+
+        <jaxws:endpoint id="helloworld" implementor="com.atguigu.cxf.spring.HelloWorldImpl" address="/HelloWorld">
+        </jaxws:endpoint>
+
+
+        </beans>
+    修改web.xml
+        <context-param>
+        	<param-name>contextConfigLocation</param-name>
+        	<param-value>classpath:applicationContext.xml</param-value>
+        </context-param>
+        <listener>
+        <listener-class>
+           org.springframework.web.context.ContextLoaderListener
+        </listener-class>
+        </listener>
+
+         <servlet>
+        	 <servlet-name>cxf01</servlet-name>
+        	 <servlet-class>
+        		org.apache.cxf.transport.servlet.CXFServlet
+        	 </servlet-class>
+         </servlet>
+         <servlet-mapping>
+        	 <servlet-name>cxf01</servlet-name>
+        	 <url-pattern>/services/*</url-pattern>
+         </servlet-mapping>
+7.Restful Web Services (JAX-RS):
+    JAX-RS = Java API For Restful Web Services
+    定义:
+        JAX-RS是JAVA EE6 引入的一个新规范。 是一个Java 编程语言的应用程序接口，支持按照表述性状态转移（REST）架构风格创建Web服务。
+
+        JAX-RS使用了Java标注来简化Web服务的客户端和服务端的开发和部署。
+
+        除了JAX-RS方式发布Restful风格的WebserviceSpringMVC也可以发布Restful风格的Webservice
+    用法:
+        JAX-RS提供了一些标注将一个资源类，一个POJO Java类，封装为Web资源。
+           包括：
+               @Path，标注资源类或者方法的相对路径
+               @GET，@PUT，@POST，@DELETE，标注方法是HTTP请求的类型。
+               @Produces，标注返回的MIME媒体类型
+               @Consumes，标注可接受请求的MIME媒体类型
+               @PathParam，@QueryParam，@HeaderParam，@CookieParam，@MatrixParam，@FormParam,分别标注方法的参数来自于HTTP请求的不同位置，例如：
+               @PathParam来自于URL的路径，
+               @QueryParam来自于URL的查询参数，
+               @HeaderParam来自于HTTP请求的头信息，
+               @CookieParam来自于HTTP请求的Cookie。
+               基于JAX-RS实现的框架有Jersey，RESTEasy等。
+               这两个框架创建的应用可以很方便地部署到Servlet 容器中
+    怎么用:
+        1)建工程添jar包(Cxf的jar包)
+
+        2)建Customer.java的entity并添加注解@XmlRootElement
+
+        3)建CustomerService接口并添加Restful风格相关的注释
+
+        4)编写CustomerServiceImpl实现类
+
+        5)编写MainServer类，启动Restful的Webservice
+        启动后注意目前用rest而不是soap了，所以没有WSDL的描述了
+
+        6)浏览器地址栏里面按照Restful风格的路径进行访问+测试
+    客户端开发步骤:
+        使用 HttpClient需要以下6个步骤：
+
+        1) 创建 HttpClient 的实例
+
+        2) 创建某种连接方法的实例
+
+        3) 调用第一步中创建好的实例的execute方法来执行第二步中创建好的链接类实例
+
+        4) 读response获取HttpEntity
+
+        5) 对得到后的内容进行处理
+
+        6) 释放连接。无论执行方法是否成功，都必须释放连接
+
+8.支付接口调用原理:
+    1)客户浏览器确认付款到支付模块。
+    2)支付模块:
+        ①校验传输内容
+        ②制作签名
+        ③添加默认参数
+        ④记录业务信息及商户返回连接，通知连接保存到数据库
+        ⑤重定向到支付宝
+    生成支付参数到客户浏览器。
+    3)客户浏览器发起支付到支付宝
+    4)支付宝推送支付页面到客户浏览器
+    5)客户浏览器输入支付密码，确认支付到支付宝
+    6)支付宝同步返回支付成功等参数到客户浏览器。
+    7)客户浏览器跳转，支付模块收到信息
+    8)支付模块:
+        ①校验传输内容。
+        ②检验签名
+        ③检验交易状态
+        ④更新交易状态，记录交易时间等。
+        ⑤通知交易系统订单状态。
+        ⑥交易系统返回参数后，再次更新交易状态，记录交易时间等。
+        ⑦重定向到商家页面
+    9)支付模块通知电商业务模块。
+    10)电商业务模块返回success给支付模块
+    11)支付模块再转到客户浏览器。
+    12)客户浏览器重定向到电商业务模块。
+    从8)到12)是同步调用的模块。
+    以下是异步调用的模块是和同步模块一起执行的。
+    异步返回支付成功等参数:
+        ①校验传输内容。
+        ②检验签名
+        ③检验交易状态
+        ④检验是否该交易已处理完成
+        ⑤未完成则执行上述的4，5，6步
+        ⑥返回success给支付宝
+    支付模块通知电商业务模块
+    电商业务模块返回success给支付模块。
